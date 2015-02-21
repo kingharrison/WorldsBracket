@@ -28,5 +28,5 @@ if (!isset($CURRENT_USER)) {
 	
 Welcome!	
 
-<?php include '/home/kingharrison/fierceboard/worldsbracket/footer.php'; ?>	
+<?php include $root . '/worldsbracket/footer.php'; ?>	
 

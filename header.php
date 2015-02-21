@@ -55,7 +55,7 @@
 	<!-- javascript -->
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.js"></script>
+	<!--<script src="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.js"></script>-->
 	<script src="js/bootstrap/bootstrap.min.js"></script>
 	<script src="js/vendor/jquery.cookie.js"></script>
 	<script src="js/vendor/moment.min.js"></script>
