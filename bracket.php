@@ -4,42 +4,15 @@
 	$root = $_SERVER['DOCUMENT_ROOT'];
 	include $root . '/worldsbracket/header.php';
 	
-	$name = NULL;
-	$enddate = NULL;
-	// get the bracket members
-	$divisions = [];
-	
 	if(isset($_GET['id']))
 	{
 		$bracketid = $_GET['id'];
-	
-		// get the bracket name
-		if($stmt = $mysqli->prepare("SELECT MatchName, EndDate FROM BracketMatch WHERE matchid = ?")) {
-			$stmt->bind_param('i', $bracketid);
-			$res =$stmt->execute();
-	   
-		    $stmt->bind_result($name, $enddate);
 		
-		    if($stmt->fetch()) {
-		           $pagetitle = $name . ' Bracket';
-		    }	
+		// get the bracket info/divisions
+		$bracket = $BRACKET_DATA_BO->getBracket($bracketid);
+		$divisions = $BRACKET_DATA_BO->getBracketDivisions($bracketid);
 		
-			$stmt->close();
-		}
-		
-		// get the bracket divisions
-		if($stmt = $mysqli->prepare("SELECT DivisionId, DivisionName FROM VW_Matches WHERE matchid =  ?")) {
-			$stmt->bind_param('i', $bracketid);
-			$res =$stmt->execute();
-	
-		    $stmt->bind_result($divisionid, $divisionname);
-
-		    while($stmt->fetch()) {
-				array_push($divisions, array("DivisionId"=> $divisionid, "DivisionName" => $divisionname));
-           
-		    }
-			$stmt->close();
-		}
+		$pagetitle = $bracket['MatchName'] . ' Bracket';
 	}
 	
 	
@@ -62,7 +35,10 @@
 		</div>
 	</div>
 	<div class="content-wrapper">
-		<div class="alert alert-info" role="alert">Please enter your selections for Top 5 in each division. If a team is missing, please message <a href="http://board.fierce-brands.com/conversations/add?to=Ashley" target="_blank">Ashley</a>.</div>
+		<div class="alert alert-info" role="alert">Please enter your selections for Top 5 in each division. If a team is missing, please message <a href="<?php echo $config['fierceboardUrl'] ?>conversations/add?to=Ashley" target="_blank">Ashley</a>.
+		<br/><br/>
+		To select a team, start typing the team name in the textbox. A dropdown will appear with matching options. There may be a slight delay before the list of teams appears.
+		</div>
 		
 		
 		<form class="form-horizontal" method="post" name="bracket-form" enctype="multipart/form-data">
@@ -142,7 +118,7 @@
 				 source: function(req, response) {
 					 var id = el.data('division');
 		  	         $.ajax({
-						 url: "http://theroadtoworlds.com/service/rtwservice.asmx/GetBidWinners?divisionid=" + id,
+						 url: "<?php echo $config['rtwServiceUrl'] ?>GetBidWinners?divisionid=" + id,
 						 dataType: "jsonp",
 						 searchToken: req.term,
 						 success: function( data ) {

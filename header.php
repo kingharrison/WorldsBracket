@@ -7,26 +7,31 @@
 	$root = $_SERVER['DOCUMENT_ROOT'];
   	$worlds_bracket_home = $root . '/worldsbracket/';
 		
-	include_once($worlds_bracket_home . "library/userinfo.php");
-	include_once($worlds_bracket_home . "library/BracketConfig.php");
 	require_once($worlds_bracket_home . "config.php");
+	include_once($worlds_bracket_home . "library/userinfo.php");
+	include_once($worlds_bracket_home . "library/DbConnection.php");
+	include_once($worlds_bracket_home . "library/BracketData.php");
 
 	
-	// set up database connection 
 	$config_db_username = $config['dbUserName'];
 	$config_db_password = $config['dbPassword'];
 	$config_db_hostname = $config['dbHostName'];
-	$mysqli = new mysqli($config_db_hostname, $config_db_username, $config_db_password, "ashley");
-	if ($mysqli->connect_errno) {
-	    echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
-	}
+	$config_db_name = $config['dbName'];
 	
-	// get the user from session
-	$currentUser = SessionData::getCurrentUser();
+	// set up database connection
+	$connection = new DbConnectection($config_db_hostname, $config_db_username, $config_db_password, $config_db_name);
+	$connection->connect();
+	
+	// set up global variables
+	$CURRENT_USER = SessionData::getCurrentUser();
+	$BRACKET_DATA_BO = new BracketData($connection->getPDO());
+
+	
+	// set up avatar
 	$avatarPath = "http://board.fierce-brands.com/styles/fierceboardlogo.png";
-	if(isset($currentUser))
+	if(isset($CURRENT_USER))
 	{
-		$avatarPath = "http://board.fierce-brands.com/data/avatars/s/" . intval($currentUser['user_id']/1000) . "/" . $currentUser['user_id'] . ".jpg";
+		$avatarPath = "http://board.fierce-brands.com/data/avatars/s/" . intval($CURRENT_USER['user_id']/1000) . "/" . $CURRENT_USER['user_id'] . ".jpg";
 	}
 	
 ?>
@@ -74,7 +79,7 @@
 				<a href="index.html" class="name">
 					<img class="avatar" src="<?php echo $avatarPath ?>" />
 					<span>
-						<?php echo $currentUser['username'] ?>
+						<?php echo $CURRENT_USER['username'] ?>
 						<!--<i class="fa fa-chevron-down"></i>-->
 					</span>
 				</a>
@@ -100,12 +105,12 @@
 						</a>
 						<ul class="submenu">
 							<?php
-								$res = $mysqli->query("SELECT * FROM BracketMatch");
-								while($row = $res->fetch_assoc()){
-									echo '<li><a href="bracket.php?id=' . $row['MatchId'] . '">' . $row['MatchName']. '</a></li>';
-								}
-								
-								$res->close();
+							$res =  $BRACKET_DATA_BO->getAllBrackets(2015);
+							foreach($res as $row)
+							{
+								echo '<li><a href="bracket.php?id=' . $row['MatchId'] . '">' . $row['MatchName']. '</a></li>';
+							}
+							
 							?>
 							
 						</ul>
@@ -167,7 +172,7 @@
 			
 		<?php
 		// show the admin section if user is staff
-		if($currentUser['is_staff'] == 1)
+		if($CURRENT_USER['is_staff'] == 1)
 		{
 			
 		?>
@@ -210,7 +215,7 @@
 				</ul>
 			</div>
 		<?php
-		// end $currentUser['is_staff'] == 1
+		// end $CURRENT_USER['is_staff'] == 1
 		}	
 		?>	
 		
