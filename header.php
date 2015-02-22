@@ -67,6 +67,12 @@
 	<script src="js/vendor/jquery.flot/jquery.flot.js"></script>
 	<script src="js/vendor/jquery.flot/jquery.flot.time.js"></script>
 	<script src="js/vendor/jquery.flot/jquery.flot.tooltip.js"></script>
+	
+	<style type="text/css">
+		.ui-front {
+			z-index: 100000 !important;
+		}
+	</style>
 
 
 	<!--[if lt IE 9]>

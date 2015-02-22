@@ -20,8 +20,8 @@
 	$idInputFormat = "div_{0}_pos_{1}_id";
 	
 	// on post back save the teams
-	if(isset($_POST["submittedButton"]) && isset($bracket) && isset($CURRENT_USER))
-	{
+	if(isset($_POST["btnSubmit"]) && isset($bracket) && isset($CURRENT_USER))
+	{	
 		foreach($divisions as $div) 
 		{
 			$divId = $div['DivisionId'];
@@ -48,6 +48,8 @@
 			
 			$BRACKET_DATA_BO->addBracketEntries($entries, $bracketid, $divId, $CURRENT_USER["user_id"]);
 			
+			$isSaved = True;
+			
 		}
 	}
 	
@@ -65,20 +67,44 @@
 		</div>
 	</div>
 	<div class="content-wrapper">
-		<div class="alert alert-info" role="alert">Please enter your selections for Top 5 in each division. If a team is missing, please message <a href="<?php echo $config['fierceboardUrl'] ?>conversations/add?to=Ashley" target="_blank">Ashley</a>.
-		<br/><br/>
-		To select a team, start typing the team name in the textbox. A dropdown will appear with matching options. There may be a slight delay before the list of teams appears.
+		<?php 
+		if(isset($isSaved) && $isSaved == True)
+		{
+		?>
+		<div class="alert alert-success" role="alert">
+			Bracket saved!
+	    </div>
+		<?php
+		}
+		
+		if (!isset($CURRENT_USER)) {
+			echo '<div class="alert alert-warning" role="alert">Please <a href="' . $config['fierceboardUrl'] . 'login/">first log into fierceboard</a> to take part in the bracket contest</div>';
+		}
+				
+		?>
+		
+		<div class="alert alert-info" role="alert">
+			Please enter your selections for Top 5 in each division. If a team is missing, please message <a href="<?php echo $config['fierceboardUrl'] ?>conversations/add?to=Ashley" target="_blank">Ashley</a>.
+			<br/><br/>
+			To select a team, start typing the team name in the textbox. A dropdown will appear with matching options. There may be a slight delay before the list of teams appears.
+		</div>
+		
+		<div class="alert alert-danger" style="display:none;" id="errorBox" role="alert">
+			
 		</div>
 		
 		
-		<form class="form-horizontal" method="post" name="bracket-form" enctype="multipart/form-data">
+		<form class="form-horizontal" method="post" name="bracket-form" id="bracket-form" enctype="multipart/form-data">
 		<?php
-		foreach($divisions as $div){
+		foreach($divisions as $div) {
+			$divId = $div['DivisionId'];
+			$divName = $div['DivisionName'];
+			
+			echo '<div class="chart" data-division="' . $divId . '">'
 		?>
-			<div class="chart">
+			
 				<?php
-				$divId = $div['DivisionId'];
-				$divName = $div['DivisionName'];
+				
 				
 				$entries = $BRACKET_DATA_BO->getBracketEntriesDict($bracketid, $divId, $CURRENT_USER["user_id"]);
 				
@@ -95,7 +121,7 @@
 					if(isset($entries[$i]))
 					{
 						$textInputVal = $entries[$i]['TeamName'];
-						$hiddenInputVal = $entries[$i]['TeamName'];
+						$hiddenInputVal = $entries[$i]['TeamId'];
 					}
 				?>		
 				<div class="form-group">
@@ -103,17 +129,27 @@
 						<?php echo $i ?>.
 					</label>
 				    <div class="col-sm-11 col-md-9">
-				      <input type="text" class="form-control auto-complete" name="<?php echo $textInputName ?>" value="<?php echo $textInputVal ?>" data-division="<?php echo $divId?>" data-placement="<?php echo $i?>">
-					   <input type="hidden" class="hidden-ac-val" name="<?php echo $hiddenInputName ?>" value="<?php echo $hiddenInputVal ?>" data-division="<?php echo $divId ?>" data-placement="<?php echo $i?>">
+						<div class="input-wrapper">
+				      <input type="text" class="form-control auto-complete" name="<?php echo $textInputName ?>" value="<?php echo $textInputVal ?>" data-division="<?php echo $divId?>" data-placement="<?php echo $i?>" />
+					   <input type="hidden" class="hidden-ac-val" name="<?php echo $hiddenInputName ?>" value="<?php echo $hiddenInputVal ?>" data-division="<?php echo $divId ?>" data-placement="<?php echo $i?>" />
+				   	</div>
 				    </div>
 			  	</div>
 						<?php
 					}
 					echo '</div>';	
 		}
-		?>
 		
-		<input type="submit" text="save" class="btn btn-primary" name="submittedButton">
+		if (isset($CURRENT_USER)) 
+		{
+		
+		?>
+		<input type="submit" text="save" class="btn btn-primary" name="btnSubmit" id="btnSubmit">
+		
+		<?php
+		}
+			
+		?>
 
 		</form>
 	</div>
@@ -148,41 +184,99 @@
 	$(function() {
 		var dict = {};
 		
+		/*
+		$('#bracket-form').submit(function() {
+		});
+		*/
+		
+		$('#bracket-form .chart').each(function(i, el) {
+			 // load the list of teams from RTW 
+			 var divId = $(el).data('division');
+ 	         $.ajax({
+				 url: "<?php echo $config['rtwServiceUrl'] ?>GetBidWinners?divisionid=" + divId,
+				 dataType: "jsonp",
+				 divisionId: divId,
+				 divWrapper: $(el),
+				 success: function( data ) {
+					 // store the data
+					 dict[this.divisionId] = data;
+					 
+					 // iterate over the controls and store info in the data attr
+					 this.divWrapper.find('.input-wrapper').each(function(i, el) {
+						 var textInput = $(el).find('.auto-complete').first();
+						 var hiddenInput = $(el).find('.hidden-ac-val').first();
+						 
+						 // default the team-name data attr to blank
+						 textInput.data('team-name','');
+						 
+						 if($.trim(hiddenInput.val()) == '' || hiddenInput.val() == '0') {
+							 // if the hidden input is blank or 0, clear the text
+							 hiddenInput.val('');
+							 textInput.val('');
+						 }
+						 else {
+	 						// store the team name as a data attribute for validation later
+	 					 	var match = $.grep(data, function(n, i) { 
+	 					 					  return n.TeamId == hiddenInput.val();
+	 					 				});
+	 						if (match.length > 0) {
+	 							textInput.data('team-name', match[0].FullTeamName);
+	 							textInput.val(match[0].FullTeamName); // update the text box val if the data changed at RTW
+	 						}
+						 }
+					 });
+				 }
+			 });
+		});
+		
 	    $( ".auto-complete" ).each(function(i, el) {
-			 // the input element
-			 var el = $(el);
+			// the input element
+			var el = $(el);
 			 
-			 // load the list of teams from RTW if it's not already stored
-			 var divId = el.data('division');
-			 if(!dict[divId])
-			 {
-	  	         $.ajax({
-					 url: "<?php echo $config['rtwServiceUrl'] ?>GetBidWinners?divisionid=" + divId,
-					 dataType: "jsonp",
-					 divisionId: divId,
-					 success: function( data ) {
-						 dict[this.divisionId] = data;
-					 }
-				 });
-		 	}
+ 		 	// the hidden input
+ 		 	var elVal = el.siblings('.hidden-ac-val').first();
 			
-		 	// selected value
-		 	var elVal = el.siblings('.hidden-ac-val').first();
-		 
+			// validate on blur
+			el.blur(function(){
+				if($(this).val() != $(this).data('team-name')) {
+					$(this).closest('.form-group').addClass('has-error');
+				}
+				else {
+					$(this).closest('.form-group').removeClass('has-error');
+				}
+				
+				if($('.has-error').length > 0) {
+					$('#errorBox').show();
+					$('#errorBox').text('There is a problem with your team selection. Please fix the rows highlighted in red before you save.');
+					$("#btnSubmit").prop('disabled', true);
+				}
+				else {
+					$('#errorBox').hide();
+					$("#btnSubmit").prop('disabled', false);
+				}
+				
+			});
+			
+			
 			// set up autocomplete
 			el.autocomplete({
 				 select: function(e, ui) {
 					// set the hidden field value to the be the teamid and the label to be the text
 					e.preventDefault()
 				 	elVal.val(ui.item.value);
+					$(this).data('team-name', ui.item.label)
 					$(this).val(ui.item.label);
 				 },
 				 focus: function( e, ui ) {
  					e.preventDefault()
  				 	elVal.val(ui.item.value);
- 					$(this).val(ui.item.label);
+					$(this).data('team-name', ui.item.label);
+					$(this).val(ui.item.label);
+					
 				 },
 				 source: function(req, response) {
+					 
+					 
 					 // get the division/data
 					 var id = el.data('division');
 					 data = dict[id];

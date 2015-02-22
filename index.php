@@ -21,7 +21,7 @@
 
 <?php
 if (!isset($CURRENT_USER)) {
-	echo '<div class="alert alert-warning" role="alert">Please first log into fierceboard to take part in the bracket contest</div>';
+	echo '<div class="alert alert-warning" role="alert">Please <a href="' . $config['fierceboardUrl'] . '/login/">first log into fierceboard</a> to take part in the bracket contest</div>';
 }
 	
 ?>
