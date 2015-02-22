@@ -6,26 +6,7 @@
 
 	$root = $_SERVER['DOCUMENT_ROOT'];
   	$worlds_bracket_home = $root . '/worldsbracket/';
-		
-	require_once($worlds_bracket_home . "config.php");
-	include_once($worlds_bracket_home . "library/userinfo.php");
-	include_once($worlds_bracket_home . "library/DbConnection.php");
-	include_once($worlds_bracket_home . "library/BracketData.php");
-
-	
-	$config_db_username = $config['dbUserName'];
-	$config_db_password = $config['dbPassword'];
-	$config_db_hostname = $config['dbHostName'];
-	$config_db_name = $config['dbName'];
-	
-	// set up database connection
-	$connection = new DbConnectection($config_db_hostname, $config_db_username, $config_db_password, $config_db_name);
-	$connection->connect();
-	
-	// set up global variables
-	$CURRENT_USER = SessionData::getCurrentUser();
-	$BRACKET_DATA_BO = new BracketData($connection->getPDO());
-
+	require_once($worlds_bracket_home . "library/include.php");
 	
 	// set up avatar
 	$avatarPath = "http://board.fierce-brands.com/styles/fierceboardlogo.png";
@@ -68,7 +49,21 @@
 	<script src="js/vendor/jquery.flot/jquery.flot.time.js"></script>
 	<script src="js/vendor/jquery.flot/jquery.flot.tooltip.js"></script>
 	
-	<style type="text/css">
+	<style>
+		#dashboard .chart {
+			margin-bottom:20px !important;
+		}
+		.ui-autocomplete {
+			max-height: 150px;
+			overflow-y: auto;
+			/* prevent horizontal scrollbar */
+			overflow-x: hidden;
+			font-size:.8em;
+		}
+		* html .ui-autocomplete {
+			height: 150px;
+		}
+	
 		.ui-front {
 			z-index: 100000 !important;
 		}
@@ -186,6 +181,7 @@
 			<div class="menu-section">
 				<h3>Admin</h3>
 				<ul>
+					<!--
 					<li>
 						<a href="account.html" data-toggle="sidebar">
 							<i class="ion-person"></i> <span>My account</span>
@@ -197,25 +193,23 @@
 							<li><a href="account-notifications.html">Notifications</a></li>
 							<li><a href="account-support.html">Support</a></li>
 						</ul>
-					</li>
+					</li>-->
 					<li>
 						<a href="#" data-toggle="sidebar">
-							<i class="ion-usb"></i> <span>Level Navigation</span>
+							<i class="ion-settings"></i> <span>Worlds Winners</span>
 							<i class="fa fa-chevron-down"></i>
 						</a>
 						<ul class="submenu">
-							<li>
-								<a href="invoice.html" data-toggle="sidebar">
-									Submenu
-									<i class="fa fa-chevron-down"></i>
-								</a>
-								<ul class="submenu">
-									<li><a href="#">Last menu</a></li>
-									<li><a href="#">Last menu</a></li>
-								</ul>
-							</li>
-							<li><a href="invoice.html">Menu link</a></li>
-							<li><a href="#">Extra link</a></li>
+							<ul class="submenu">
+								<?php
+								$res =  $BRACKET_DATA_BO->getAllDivisions();
+								foreach($res as $row)
+								{
+									echo '<li><a href="admin-winners.php?id=' . $row['DivisionId'] . '">' . $row['DivisionName']. '</a></li>';
+								}
+						
+								?>
+							</ul>
 						</ul>
 					</li>
 				</ul>

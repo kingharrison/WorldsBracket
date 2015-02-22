@@ -1,61 +1,80 @@
 <?php 
-	$pagetitle = "Fierceboard Bracket Contest";
+	$pagetitle = "Manage Worlds Winners";
 	
-	$root = $_SERVER['DOCUMENT_ROOT'] . '/worldsbracket/';
-	include $root . 'header.php';
-	include $root . '/worldsbracket/' . 'library/BracketEntry.php';
+	// include these now in case we need to redirect the user
+	$root = $_SERVER['DOCUMENT_ROOT'];
+  	$worlds_bracket_home = $root . '/worldsbracket/';
 	
-	$textInputFormat = "div_{0}_pos_{1}_text";
-	$idInputFormat = "div_{0}_pos_{1}_id";
+	require_once($worlds_bracket_home . "library/include.php");
+	
+	if(!isset($CURRENT_USER) || $CURRENT_USER['is_staff'] == 0)
+	{
+		header("Location: index.php");
+	}
+	
 	
 	if(isset($_GET['id']))
 	{
-		$bracketid = $_GET['id'];
-		
-		// get the bracket info/divisions
-		$bracket = $BRACKET_DATA_BO->getBracket($bracketid);
-		$divisions = $BRACKET_DATA_BO->getBracketDivisions($bracketid);
-		
-		$pagetitle = $bracket['MatchName'] . ' Bracket';
+		$divisionid = $_GET['id'];
+		$div = $BRACKET_DATA_BO->getDivision($divisionid);
+		$divId = $div['DivisionId'];
 	}
 	
+	// some constants
+	$season = $config['compYear'];
+	$textInputFormat = "div_{0}_pos_{1}_text";
+	$idInputFormat = "div_{0}_pos_{1}_id";
+	$numEntries = 10;
+	
 	// on post back save the teams
-	if(isset($_POST["btnSubmit"]) && isset($bracket) && isset($CURRENT_USER))
+	if((isset($_POST["btnSubmit"]) || isset($_POST["btnSubmitNext"]))  && isset($div) && isset($CURRENT_USER))
 	{	
-		foreach($divisions as $div) 
+		$entries = [];
+		for($i = 1; $i <= $numEntries; $i++) 
 		{
-			$divId = $div['DivisionId'];
+			$textInputName = str_replace('{1}', $i, str_replace('{0}', $divId, $textInputFormat));
+			$hiddenInputName = str_replace('{1}', $i, str_replace('{0}', $divId, $idInputFormat));
 			
-			$entries = [];
-			for($i = 1; $i <= $bracket['NumEntries']; $i++) 
+			if(isset($_POST[$hiddenInputName]) && strlen($_POST[$hiddenInputName]) > 0)
 			{
-				$textInputName = str_replace('{1}', $i, str_replace('{0}', $divId, $textInputFormat));
-				$hiddenInputName = str_replace('{1}', $i, str_replace('{0}', $divId, $idInputFormat));
+				$entry = [];
+				$entry['Season'] = $season;
+				$entry['DivisionId'] = $divId;
+				$entry['Position'] = $i;
+				$entry['UserId'] = $CURRENT_USER["user_id"];
+				$entry['TeamId'] = $_POST[$hiddenInputName];
+				$entry['TeamName'] = $_POST[$textInputName];
 				
-				if(isset($_POST[$hiddenInputName]))
-				{
-					$entry = new BracketEntry();
-					$entry->setUserId($CURRENT_USER["user_id"]);
-					$entry->setBracketId($bracketid);
-					$entry->setDivisionId($divId);
-					$entry->setPosition($i);
-					$entry->setTeamId($_POST[$hiddenInputName]);
-					$entry->setTeamName($_POST[$textInputName]);
-				
-					$entries[$i] = $entry;
-				}
+				$entries[$i] = $entry;
+			}
+		}
+		
+		$BRACKET_DATA_BO->addWorldsPlacements($entries, $divId, $season);
+		
+		$isSaved = True;
+		
+		// redirect to next division
+		if (isset($_POST["btnSubmitNext"])) 
+		{
+			$nextId = $BRACKET_DATA_BO->getAllDivisions()[0]['DivisionId'];
+			$next = $BRACKET_DATA_BO->getNextDivision($divId);
+			if(isset($next) && isset($next['DivisionId'])) {
+				$nextId = $next['DivisionId'];
 			}
 			
-			$BRACKET_DATA_BO->addBracketEntries($entries, $bracketid, $divId, $CURRENT_USER["user_id"]);
-			
-			$isSaved = True;
-			
+			$location = "admin-winners.php?id=" . $nextId;
+			header("Location: " . $location);
 		}
 	}
 	
 	
+	include $worlds_bracket_home . 'header.php';
+	
+	// get the standings
+	$placements = $BRACKET_DATA_BO->getWorldsPlacementsDict($season, $divId);
 	
 ?>
+
 
 <div id="content">
 	<div class="menubar">
@@ -76,40 +95,26 @@
 	    </div>
 		<?php
 		}
-		
-		if (!isset($CURRENT_USER)) {
-			echo '<div class="alert alert-warning" role="alert">Please <a href="' . $config['fierceboardUrl'] . 'login/">first log into fierceboard</a> to take part in the bracket contest</div>';
-		}		
 		?>
-		
-		<div class="alert alert-info" role="alert">
-			Please enter your selections for Top 5 in each division. If a team is missing, please message <a href="<?php echo $config['fierceboardUrl'] ?>conversations/add?to=Ashley" target="_blank">Ashley</a>.
-			<br/><br/>
-			To select a team, start typing the team name in the textbox. A dropdown will appear with matching options. There may be a slight delay before the list of teams appears.
+		<div class="alert alert-danger" style="display:none;" id="errorBox" role="alert">	
 		</div>
 		
-		<div class="alert alert-danger" style="display:none;" id="errorBox" role="alert">
+		<form class="form-horizontal" method="post" name="winner-form" id="winner-form" enctype="multipart/form-data">
+			<?php
+			if($CURRENT_USER['is_staff'] == 1) {
+			?>
+				<input type="submit" value="Save" class="btn btn-primary" name="btnSubmit" id="btnSubmit">
+				
+				<input type="submit" value="Save and Next" class="btn btn-primary pull-right" name="btnSubmitNext" id="btnSubmitNext">
+			<?php
+			}
+			?>
 			
-		</div>
-		
-		
-		<form class="form-horizontal" method="post" name="bracket-form" id="bracket-form" enctype="multipart/form-data">
-		<?php
-		foreach($divisions as $div) {
-			$divId = $div['DivisionId'];
-			$divName = $div['DivisionName'];
-			
-			echo '<div class="chart" data-division="' . $divId . '">'
-		?>
-			
+			<div class="chart" data-division="<?php echo $divId ?>">
+				<h3><?php echo $div['DivisionName']?></h3>
+				
 				<?php
-				
-				
-				$entries = $BRACKET_DATA_BO->getBracketEntriesDict($bracketid, $divId, $CURRENT_USER["user_id"]);
-				
-				echo "<h3>" . $divName . "</h3>";
-				
-				for($i = 1; $i < 6; $i++)
+				for($i = 1; $i < $numEntries; $i++)
 				{
 					$textInputName = str_replace('{1}', $i, str_replace('{0}', $divId, $textInputFormat));
 					$hiddenInputName = str_replace('{1}', $i, str_replace('{0}', $divId, $idInputFormat));
@@ -117,10 +122,11 @@
 					$textInputVal = "";
 					$hiddenInputVal = "";
 					
-					if(isset($entries[$i]))
+					
+					if(isset($placements[$i]))
 					{
-						$textInputVal = $entries[$i]['TeamName'];
-						$hiddenInputVal = $entries[$i]['TeamId'];
+						$textInputVal = $placements[$i]['TeamName'];
+						$hiddenInputVal = $placements[$i]['TeamId'];
 					}
 				?>		
 				<div class="form-group">
@@ -134,25 +140,23 @@
 				   	</div>
 				    </div>
 			  	</div>
-						<?php
-					}
-					echo '</div>';	
-		}
-		
-		if (isset($CURRENT_USER)) 
-		{
-		
-		?>
-		<input type="submit" text="save" class="btn btn-primary" name="btnSubmit" id="btnSubmit">
-		
-		<?php
-		}
-			
-		?>
-
+				<?php
+				}
+				?>
+			</div>
+			<?php
+			if($CURRENT_USER['is_staff'] == 1) {
+			?>
+				<input type="submit" value="Save" class="btn btn-primary" name="btnSubmit" id="btnSubmit">
+				
+				<input type="submit" value="Save and Next" class="btn btn-primary pull-right" name="btnSubmitNext" id="btnSubmitNext">
+			<?php
+			}
+			?>
 		</form>
 	</div>
 </div>
+
 	
 <script>
 	function SortByName(a, b){
@@ -169,7 +173,7 @@
 		});
 		*/
 		
-		$('#bracket-form .chart').each(function(i, el) {
+		$('#winner-form .chart').each(function(i, el) {
 			 // load the list of teams from RTW 
 			 var divId = $(el).data('division');
  	         $.ajax({
@@ -279,6 +283,6 @@
 	 });
 </script>
 		
-	
+
 <?php include $root .  "/worldsbracket/" . 'footer.php'; ?>	
 	
