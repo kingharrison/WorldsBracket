@@ -7,6 +7,21 @@ class BracketData
 		$this->connection = $connection;
 	}
 	
+	public function getAllRounds() {
+		$stmt = $this->connection->prepare('SELECT * FROM CompetitionRound Order by CompetitionRoundId');
+		$stmt->execute();
+		
+		return $stmt->fetchAll();
+	}
+	
+	public function getRound($roundId) {
+		$stmt = $this->connection->prepare('SELECT * FROM CompetitionRound WHERE CompetitionRoundId = :round');
+		$stmt->bindParam(':round', $roundId, PDO::PARAM_INT);
+		$stmt->execute();
+		
+		return $stmt->fetch();
+	}
+	
 	public function getAllDivisions() {
 		$stmt = $this->connection->prepare('SELECT * FROM Divisions');
 		$stmt->execute();
@@ -47,9 +62,30 @@ class BracketData
 		return $stmt->fetch();
 	}
 	
+	public function getBracketRounds($bracketId) {
+		$stmt = $this->connection->prepare('SELECT MatchId, CompetitionRoundId, CompetitionRoundName
+											FROM VW_Matches
+											WHERE matchid = :matchid
+											GROUP BY MatchId, CompetitionRoundId, CompetitionRoundName
+											ORDER BY CompetitionRoundId');
+		$stmt->bindParam(':matchid', $bracketId, PDO::PARAM_INT); 
+		$stmt->execute();
+		
+		return $stmt->fetchAll();
+	}
+	
 	public function getBracketDivisions($bracketId) {
-		$stmt = $this->connection->prepare('SELECT DivisionId, DivisionName FROM VW_Matches WHERE matchid = :matchid');
+		$stmt = $this->connection->prepare('SELECT * FROM VW_Matches WHERE matchid = :matchid ORDER BY TieBreakOrder');
 		$stmt->bindParam(':matchid', $bracketId, PDO::PARAM_INT); // <-- Automatically sanitized for SQL by PDO
+		$stmt->execute();
+		
+		return $stmt->fetchAll();
+	}
+	
+	public function getBracketDivisionsByRound($bracketId, $roundId) {
+		$stmt = $this->connection->prepare('SELECT * FROM VW_Matches WHERE matchid = :matchid and competitionroundid = :roundid ORDER BY TieBreakOrder');
+		$stmt->bindParam(':matchid', $bracketId, PDO::PARAM_INT); 
+		$stmt->bindParam(':roundid', $roundId, PDO::PARAM_INT); 
 		$stmt->execute();
 		
 		return $stmt->fetchAll();
@@ -76,10 +112,11 @@ class BracketData
 		return $dict;
 	}
 	
-	public function addBracketEntries($bracketEntries, $bracketId, $divisionId, $userId) {	    
+	public function addBracketEntries($bracketEntries, $bracketId, $roundId, $divisionId, $userId) {	    
 		// do a delete and insert
-		$stmt = $this->connection->prepare("DELETE FROM BracketEntry WHERE MatchId = :matchid AND DivisionId = :divid AND UserId = :userid");
+		$stmt = $this->connection->prepare("DELETE FROM BracketEntry WHERE MatchId = :matchid AND RoundId = :roundid AND DivisionId = :divid AND UserId = :userid");
 		$stmt->bindParam(':matchid',  $bracketId, PDO::PARAM_INT);
+		$stmt->bindParam(':roundid', $roundId, PDO::PARAM_INT);
 		$stmt->bindParam(':divid', $divisionId, PDO::PARAM_INT);
 		$stmt->bindParam(':userid', $userId, PDO::PARAM_INT);
 		$stmt->execute();
@@ -93,8 +130,9 @@ class BracketData
 				$teamId = $br->getTeamId();
 				$teamName = $br->getTeamName();
 				
-				$stmt = $this->connection->prepare('INSERT INTO BracketEntry (MatchId, DivisionId, UserId, Position, TeamId, TeamName) VALUES (:matchid, :divid, :userid, :pos, :teamid, :teamname)');
+				$stmt = $this->connection->prepare('INSERT INTO BracketEntry (MatchId, RoundId, DivisionId, UserId, Position, TeamId, TeamName) VALUES (:matchid, :roundid, :divid, :userid, :pos, :teamid, :teamname)');
 				$stmt->bindParam(':matchid', $bracketId, PDO::PARAM_INT);
+				$stmt->bindParam(':roundid', $roundId, PDO::PARAM_INT);
 				$stmt->bindParam(':divid', $divisionId, PDO::PARAM_INT);
 				$stmt->bindParam(':userid', $userId, PDO::PARAM_INT);
 				$stmt->bindParam(':pos', $position, PDO::PARAM_INT);
@@ -105,17 +143,18 @@ class BracketData
 		}
 	}
 	
-	public function getWorldsPlacements($season, $divisionId) {
-		$stmt = $this->connection->prepare("SELECT * FROM WorldsWinners WHERE DivisionId = :divid AND Season = :season ORDER BY Position");
+	public function getWorldsPlacements($season, $roundId, $divisionId) {
+		$stmt = $this->connection->prepare("SELECT * FROM WorldsWinners WHERE DivisionId = :divid AND CompetitionRoundId = :round AND Season = :season ORDER BY Position");
 		$stmt->bindParam(':divid', $divisionId, PDO::PARAM_INT);
+		$stmt->bindParam(':round', $roundId, PDO::PARAM_INT);
 		$stmt->bindParam(':season', $season, PDO::PARAM_INT);
 		$stmt->execute();
 		
 		return $stmt->fetchAll();
 	}
 	
-	public function getWorldsPlacementsDict($season, $divisionId) {
-		$entries = $this->getWorldsPlacements($season, $divisionId);
+	public function getWorldsPlacementsDict($season, $roundId, $divisionId) {
+		$entries = $this->getWorldsPlacements($season, $roundId, $divisionId);
 		$dict = [];
 		foreach($entries as $en)
 		{
@@ -125,11 +164,12 @@ class BracketData
 		return $dict;
 	}
 	
-	public function addWorldsPlacements($placements, $divisionId, $season) 
+	public function addWorldsPlacements($placements, $roundId, $divisionId, $season) 
 	{	    
 		// do a delete and insert
-		$stmt = $this->connection->prepare("DELETE FROM WorldsWinners WHERE DivisionId = :divid AND Season = :season ORDER BY Position");
+		$stmt = $this->connection->prepare("DELETE FROM WorldsWinners WHERE DivisionId = :divid AND CompetitionRoundId = :round Season = :season ORDER BY Position");
 		$stmt->bindParam(':divid', $divisionId, PDO::PARAM_INT);
+		$stmt->bindParam(':round', $roundId, PDO::PARAM_INT);
 		$stmt->bindParam(':season', $season, PDO::PARAM_INT);
 		$stmt->execute();
 			
@@ -137,8 +177,9 @@ class BracketData
 		{
 			if(strlen($pl['TeamId']) > 0) 
 			{
-				$stmt = $this->connection->prepare('INSERT INTO WorldsWinners (Season, DivisionId, InsertBy, Position, TeamId, TeamName) VALUES (:season, :divid, :userid, :pos, :teamid, :teamname)');
+				$stmt = $this->connection->prepare('INSERT INTO WorldsWinners (Season, CompetitionRoundId, DivisionId, InsertBy, Position, TeamId, TeamName) VALUES (:season, :round, :divid, :userid, :pos, :teamid, :teamname)');
 				$stmt->bindParam(':season', $pl['Season'], PDO::PARAM_INT);
+				$stmt->bindParam(':round', $pl['RoundId'], PDO::PARAM_INT);
 				$stmt->bindParam(':divid', $pl['DivisionId'], PDO::PARAM_INT);
 				$stmt->bindParam(':userid', $pl['UserId'], PDO::PARAM_INT);
 				$stmt->bindParam(':pos', $pl['Position'], PDO::PARAM_INT);

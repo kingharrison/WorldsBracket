@@ -7120,16 +7120,26 @@ body {
       min-width: 150px;
       text-align: center; }
 
+	  /*
 #wizard #content {
   padding: 0 0 40px; }
   #wizard #content .content-wrapper {
     margin-top: 0; }
+	  */
+
 #wizard .header {
   padding: 11px 0 9px 0;
   background: #5A6474;
   font-family: "Helvetica Neue", Arial;
   text-align: center;
   box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.15); }
+  
+  #wizard #wizard-header.header {
+	  position:absolute;
+	  top:60px;
+	  left:0px;
+	  width:100%;
+  }
   #wizard .header .sidebar-toggler {
     position: absolute;
     color: #fff;
@@ -7155,6 +7165,9 @@ body {
       position: relative;
       font-size: 13px;
       font-weight: 500; }
+	  #wizard .header .steps .step a {
+		  color:white;
+	  }
       @media (max-width: 767px) {
         #wizard .header .steps .step {
           width: 100%;

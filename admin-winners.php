@@ -1,5 +1,5 @@
 <?php 
-	$pagetitle = "Manage Worlds Winners";
+	$pagetitle = "Manage Team Placements";
 	
 	// include these now in case we need to redirect the user
 	$root = $_SERVER['DOCUMENT_ROOT'];
@@ -15,22 +15,34 @@
 	
 	if(isset($_GET['id']))
 	{
-		$divisionid = $_GET['id'];
-		$div = $BRACKET_DATA_BO->getDivision($divisionid);
-		$divId = $div['DivisionId'];
+		$divId = $_GET['id'];
+		$div = $BRACKET_DATA_BO->getDivision($divId);
+	}
+	
+	
+	// get the current round id from the query string, otherwise default to 0
+	$rounds = $BRACKET_DATA_BO->getAllRounds();
+	$roundid = 0;
+	if(isset($_GET['roundid']))
+	{
+		$roundid = $_GET['roundid'];
+	}
+	else
+	{
+		$roundid = $rounds[0]["CompetitionRoundId"];
 	}
 	
 	// some constants
 	$season = $config['compYear'];
 	$textInputFormat = "div_{0}_pos_{1}_text";
 	$idInputFormat = "div_{0}_pos_{1}_id";
-	$numEntries = 10;
+	$numEntries = 11;
 	
 	// on post back save the teams
 	if((isset($_POST["btnSubmit"]) || isset($_POST["btnSubmitNext"]))  && isset($div) && isset($CURRENT_USER))
 	{	
 		$entries = [];
-		for($i = 1; $i <= $numEntries; $i++) 
+		for($i = 1; $i < $numEntries; $i++) 
 		{
 			$textInputName = str_replace('{1}', $i, str_replace('{0}', $divId, $textInputFormat));
 			$hiddenInputName = str_replace('{1}', $i, str_replace('{0}', $divId, $idInputFormat));
@@ -39,6 +51,7 @@
 			{
 				$entry = [];
 				$entry['Season'] = $season;
+				$entry['RoundId'] = $roundid;
 				$entry['DivisionId'] = $divId;
 				$entry['Position'] = $i;
 				$entry['UserId'] = $CURRENT_USER["user_id"];
@@ -49,7 +62,7 @@
 			}
 		}
 		
-		$BRACKET_DATA_BO->addWorldsPlacements($entries, $divId, $season);
+		$BRACKET_DATA_BO->addWorldsPlacements($entries, $roundid, $divId, $season);
 		
 		$isSaved = True;
 		
@@ -62,7 +75,7 @@
 				$nextId = $next['DivisionId'];
 			}
 			
-			$location = "admin-winners.php?id=" . $nextId;
+			$location = "admin-winners.php?id=" . $nextId . "&roundid=" . $roundid ;
 			header("Location: " . $location);
 		}
 	}
@@ -71,11 +84,11 @@
 	include $worlds_bracket_home . 'header.php';
 	
 	// get the standings
-	$placements = $BRACKET_DATA_BO->getWorldsPlacementsDict($season, $divId);
+	$placements = $BRACKET_DATA_BO->getWorldsPlacementsDict($season, $roundid, $divId);
 	
 ?>
 
-
+<div id="wizard">
 <div id="content">
 	<div class="menubar">
 		<div class="sidebar-toggler visible-xs">
@@ -85,7 +98,40 @@
 			<?php echo $pagetitle ?>
 		</div>
 	</div>
+	
 	<div class="content-wrapper">
+		<div class="header" id="wizard-header">
+			<div class="steps clearfix">
+				<div>
+					<?php 
+					// active class
+					foreach($rounds as $round)
+					{
+						$href = 'admin-winners.php?id=' . $divId . '&roundid=' . $round['CompetitionRoundId'];
+					
+						$isactive = '';
+						if($roundid >= $round['CompetitionRoundId'])
+						{
+							$isactive = ' active ';
+						}
+				
+						?>
+							<div class="step <?php echo $isactive ?>">
+								<a href="<?php echo $href ?>">
+									<?php echo $round['CompetitionRoundName'] ?>
+								</a>
+								<span></span>
+							</div>
+						<?
+				
+					}
+					?>
+				</div>
+			</div>
+		</div>
+		<div style="margin-bottom:120px;">
+		</div>
+	
 		<?php 
 		if(isset($isSaved) && $isSaved == True)
 		{
@@ -100,15 +146,6 @@
 		</div>
 		
 		<form class="form-horizontal" method="post" name="winner-form" id="winner-form" enctype="multipart/form-data">
-			<?php
-			if($CURRENT_USER['is_staff'] == 1) {
-			?>
-				<input type="submit" value="Save" class="btn btn-primary" name="btnSubmit" id="btnSubmit">
-				
-				<input type="submit" value="Save and Next" class="btn btn-primary pull-right" name="btnSubmitNext" id="btnSubmitNext">
-			<?php
-			}
-			?>
 			
 			<div class="chart" data-division="<?php echo $divId ?>">
 				<h3><?php echo $div['DivisionName']?></h3>
@@ -155,6 +192,8 @@
 			?>
 		</form>
 	</div>
+</div>
+
 </div>
 
 	
@@ -277,7 +316,20 @@
 					 
 					 // send the select data to the response
 					 response( selectData.sort(SortByName));
-				 }
+				 },
+				 create: function () {
+		             $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
+						 var bidType = 'At Large';
+						 if(item.bidtype == 'FullPaid')
+							 bidType = 'Full Paid';
+						 else if (item.bidType == 'PartialPaid')
+							 bidType = 'Partial Paid';
+						 
+		                 return $('<li>')
+		                     .append('<a>' + item.label + '<span class="pull-right">(' + bidType + ')</span></a>')
+		                     .appendTo(ul);
+		             };
+		         }
 			 })
 		 });
 	 });

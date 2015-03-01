@@ -3,10 +3,12 @@ class BracketEntry
 {
 	private $bracketId;
 	private $userId;
+	private $roundId;
 	private $divisionId;
 	private $position;
 	private $teamId;
 	private $teamName;
+	
 	
 	public function getBracketId()
 	{
@@ -31,6 +33,16 @@ class BracketEntry
 	public function getDivisionId()
 	{
 		return $this->divisionId;
+	}
+	
+	public function setRoundId($roundId)
+	{
+		$this->roundId = $roundId;
+	}
+	
+	public function getRoundId()
+	{
+		return $this->roundId;
 	}
 	
 	public function setDivisionId($divisionId)
