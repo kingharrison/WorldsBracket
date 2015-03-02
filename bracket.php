@@ -191,7 +191,7 @@
 					<?php
 					if($roundid == 1)
 					{
-						echo "<br/><br/><strong>Prelims are at-large teams ONLY. The order of teams does not matter, you will only be scored on the number of teams you guess correctly.</strong>";
+						echo "<br/><br/><strong>Prelims are at-large teams ONLY. Do not select a team with a partial or full paid bid.</strong>";
 					}
 					
 					?>

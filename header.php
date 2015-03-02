@@ -87,7 +87,7 @@
 <body id="dashboard"><div id="wrapper">
 		<div id="sidebar-default" class="main-sidebar">
 			<div class="current-user">
-				<a href="index.html" class="name">
+				<a href="index.php" class="name">
 					<img class="avatar" src="<?php echo $avatarPath ?>" />
 					<span>
 						<?php echo $CURRENT_USER['username'] ?>

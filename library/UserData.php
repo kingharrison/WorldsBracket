@@ -50,6 +50,18 @@ class UserData
 		}
 	}
 	
+	public function getBracketScores($bracketId)
+	{
+		$stmt = $this->connection->prepare('SELECT * FROM VW_Scores
+											WHERE MatchId = :match
+											ORDER BY Score DESC, TieBreak1Score DESC, TieBreak2Score DESC, 
+											TieBreak3Score DESC, TieBreak4Score DESC, TieBreak5Score DESC');
+		$stmt->bindParam(':match', $bracketId, PDO::PARAM_INT);
+		$stmt->execute();
+	
+		return $stmt->fetchAll();
+	}
+	
 	public function getBracketStatus($userId, $season)
 	{
 		$stmt = $this->connection->prepare('SELECT MatchId, MatchName, SUM(NumEntries) AS NumEntries
@@ -77,10 +89,7 @@ class UserData
 			$t['MyEntries'] = $res['EntryCnt'];
 			$newresult[] = $t;
 		}
-		
-		
 		return $newresult;
-		
 	}
 	
 }
