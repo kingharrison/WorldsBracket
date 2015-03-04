@@ -91,9 +91,10 @@ class BracketData
 		return $stmt->fetchAll();
 	}
 	
-	public function getBracketEntries($bracketId, $divisionId, $userId) {
-		$stmt = $this->connection->prepare("SELECT * FROM BracketEntry WHERE MatchId = :matchid AND DivisionId = :divid AND UserId = :userid");
+	public function getBracketEntries($bracketId, $roundId, $divisionId, $userId) {
+		$stmt = $this->connection->prepare("SELECT * FROM BracketEntry WHERE MatchId = :matchid AND RoundId = :roundid AND DivisionId = :divid AND UserId = :userid");
 		$stmt->bindParam(':matchid',  $bracketId, PDO::PARAM_INT);
+		$stmt->bindParam(':roundid', $roundId, PDO::PARAM_INT);
 		$stmt->bindParam(':divid', $divisionId, PDO::PARAM_INT);
 		$stmt->bindParam(':userid', $userId, PDO::PARAM_INT);
 		$stmt->execute();
@@ -101,8 +102,8 @@ class BracketData
 		return $stmt->fetchAll();
 	}
 	
-	public function getBracketEntriesDict($bracketId, $divisionId, $userId) {
-		$entries = $this->getBracketEntries($bracketId, $divisionId, $userId);
+	public function getBracketEntriesDict($bracketId, $roundId, $divisionId, $userId) {
+		$entries = $this->getBracketEntries($bracketId, $roundId, $divisionId, $userId);
 		$dict = [];
 		foreach($entries as $en)
 		{

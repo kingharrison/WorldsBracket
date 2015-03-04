@@ -72,20 +72,23 @@
 				
 				if(isset($_POST[$hiddenInputName]))
 				{
-					$entry = new BracketEntry();
-					$entry->setUserId($CURRENT_USER["user_id"]);
-					$entry->setBracketId($bracketid);
-					$entry->setRoundId($roundid);
-					$entry->setDivisionId($divId);
-					$entry->setPosition($i);
-					$entry->setTeamId($_POST[$hiddenInputName]);
-					$entry->setTeamName($_POST[$textInputName]);
+					if(strlen($_POST[$hiddenInputName]) > 0)
+					{
+						$entry = new BracketEntry();
+						$entry->setUserId($CURRENT_USER["user_id"]);
+						$entry->setBracketId($bracketid);
+						$entry->setRoundId($roundid);
+						$entry->setDivisionId($divId);
+						$entry->setPosition($i);
+						$entry->setTeamId($_POST[$hiddenInputName]);
+						$entry->setTeamName($_POST[$textInputName]);
 				
-					$entries[$i] = $entry;
+						$entries[$i] = $entry;
+					}
 				}
 			}
 			
-			$BRACKET_DATA_BO->addBracketEntries($entries, $bracketid, $roundid, $divId, $CURRENT_USER["user_id"]);
+			$BRACKET_DATA_BO->addBracketEntries($entries, $bracketid, $roundid, $divId, $CURRENT_USER['user_id']);
 			
 			$isSaved = True;
 			
@@ -221,7 +224,7 @@
 							echo "<h3>" . $divName .  "</h3>";
 						}
 			
-						$entries = $BRACKET_DATA_BO->getBracketEntriesDict($bracketid, $divId, $CURRENT_USER["user_id"]);
+						$entries = $BRACKET_DATA_BO->getBracketEntriesDict($bracketid, $roundid, $divId, $CURRENT_USER["user_id"]);
 
 						for($i = 1; $i <= $div['NumEntries']; $i++)
 						{
