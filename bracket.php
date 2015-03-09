@@ -51,6 +51,9 @@
 		}
 	}
 	
+	// exclude partial/full paid bid winners from the web service
+	$atLargeOnly = $roundid == 1;
+	
 	//update the title 
 	$pagetitle = $pagetitle . ' - ' . $roundname;
 	
@@ -214,12 +217,19 @@
 					To select a team, start typing the team name in the textbox. A dropdown will appear with matching options. There may be a slight delay before the list of teams appears.
 					<BR/><br/>
 					If a team is missing, please message <a href="<?php echo $config['fierceboardUrl'] ?>conversations/add?to=Ashley" target="_blank">Ashley</a>.
-				
+					
 					<?php
 					if($roundid == 1)
 					{
-						echo "<br/><br/><strong>Prelims are at-large teams ONLY. Do not select a team with a partial or full paid bid.</strong>";
+						echo "<br/><br/><strong>Reminder: Prelims are at-large teams only.</strong>";
 					}
+					?>
+				</div>
+				<div class="alert alert-warning" role="alert">
+					<?php
+					$scoringDetails = $divisions[0]['ScoringNotes'];
+					echo "<h4>Scoring Notes</h4>";
+					echo $scoringDetails;	
 					
 					?>
 				</div>
@@ -310,7 +320,11 @@
 	</div>
 <div>
 	
+
+	
+
 <script>
+	
 	function SortByName(a, b){
 		var aName = a.label.toLowerCase();
 		var bName = b.label.toLowerCase(); 
@@ -319,11 +333,6 @@
 	
 	$(function() {
 		var dict = {};
-		
-		/*
-		$('#bracket-form').submit(function() {
-		});
-		*/
 		
 		$('#bracket-form .chart').each(function(i, el) {
 			 // load the list of teams from RTW 
@@ -334,6 +343,21 @@
 				 divisionId: divId,
 				 divWrapper: $(el),
 				 success: function( data ) {
+					 
+					 <?php
+					 if($atLargeOnly)
+					 {
+					 ?>
+					 data = $.grep(data, function(n, i){ 
+			 					   	return n.BidType == 'AtLarge';
+			 					 	});
+					 <?php
+					 }
+					 ?>
+					 
+					 
+					 
+					 
 					 // store the data
 					 dict[this.divisionId] = data;
 					 
@@ -432,11 +456,13 @@
 				 },
 				 create: function () {
 		             $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
-						 var bidType = 'At Large';
+						 var bidType = '';
 						 if(item.bidtype == 'FullPaid')
 							 bidType = 'Full Paid';
-						 else if (item.bidType == 'PartialPaid')
+						 else if (item.bidtype == 'PartialPaid')
 							 bidType = 'Partial Paid';
+						 else if (item.bidtype == "AtLarge")
+							 bidType = 'At Large';
 						 
 		                 return $('<li>')
 		                     .append('<a>' + item.label + '<span class="pull-right">(' + bidType + ')</span></a>')
@@ -446,6 +472,7 @@
 			 })
 		 });
 	 });
+	
 </script>
 		
 	

@@ -145,7 +145,7 @@
 		<div class="alert alert-danger" style="display:none;" id="errorBox" role="alert">	
 		</div>
 		
-		<form class="form-horizontal" method="post" name="winner-form" id="winner-form" enctype="multipart/form-data">
+		<form class="form-horizontal" method="post" name="bracket-form" id="bracket-form" enctype="multipart/form-data">
 			
 			<div class="chart" data-division="<?php echo $divId ?>">
 				<h3><?php echo $div['DivisionName']?></h3>
@@ -197,7 +197,9 @@
 </div>
 
 	
+
 <script>
+	
 	function SortByName(a, b){
 		var aName = a.label.toLowerCase();
 		var bName = b.label.toLowerCase(); 
@@ -207,12 +209,7 @@
 	$(function() {
 		var dict = {};
 		
-		/*
-		$('#bracket-form').submit(function() {
-		});
-		*/
-		
-		$('#winner-form .chart').each(function(i, el) {
+		$('#bracket-form .chart').each(function(i, el) {
 			 // load the list of teams from RTW 
 			 var divId = $(el).data('division');
  	         $.ajax({
@@ -311,7 +308,7 @@
 					 var selectData = [];
 					 for(var i = 0; i < newData.length; i++)
 					 {
-					 	selectData.push({label: newData[i].FullTeamName, value: newData[i].TeamId});
+					 	selectData.push({label: newData[i].FullTeamName, value: newData[i].TeamId, bidtype:newData[i].BidType});
 					 }
 					 
 					 // send the select data to the response
@@ -319,11 +316,13 @@
 				 },
 				 create: function () {
 		             $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
-						 var bidType = 'At Large';
+						 var bidType = '';
 						 if(item.bidtype == 'FullPaid')
 							 bidType = 'Full Paid';
-						 else if (item.bidType == 'PartialPaid')
+						 else if (item.bidtype == 'PartialPaid')
 							 bidType = 'Partial Paid';
+						 else if (item.bidtype == "AtLarge")
+							 bidType = 'At Large';
 						 
 		                 return $('<li>')
 		                     .append('<a>' + item.label + '<span class="pull-right">(' + bidType + ')</span></a>')
@@ -333,6 +332,7 @@
 			 })
 		 });
 	 });
+	
 </script>
 		
 

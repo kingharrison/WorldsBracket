@@ -75,7 +75,7 @@ class BracketData
 	}
 	
 	public function getBracketDivisions($bracketId) {
-		$stmt = $this->connection->prepare('SELECT * FROM VW_Matches WHERE matchid = :matchid ORDER BY TieBreakOrder');
+		$stmt = $this->connection->prepare('SELECT * FROM VW_Matches WHERE matchid = :matchid ORDER BY TieBreakOrder, SortOrder');
 		$stmt->bindParam(':matchid', $bracketId, PDO::PARAM_INT); // <-- Automatically sanitized for SQL by PDO
 		$stmt->execute();
 		
