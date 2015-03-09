@@ -3682,7 +3682,7 @@ body {
 
 #users #content .sidebar-toggler {
   z-index: 9; }
-#users #content .page-title {
+/*#users #content .page-title {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -3696,7 +3696,7 @@ body {
   @media (max-width: 767px) {
     #users #content .page-title {
       border-right: 0;
-      padding-left: 50px; } }
+      padding-left: 50px; } }*/
 #users #content form.search {
   position: relative;
   float: left;

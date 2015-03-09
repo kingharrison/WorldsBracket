@@ -58,7 +58,8 @@
 	$divisions = $BRACKET_DATA_BO->getBracketDivisionsByRound($bracketid, $roundid);
 	
 	// on post back save the teams
-	if(isset($_POST["btnSubmit"]) && isset($bracket) && isset($CURRENT_USER))
+	if(isset($bracket) && isset($CURRENT_USER) &&
+		(isset($_POST["btnSubmit"]) || isset($_POST["btnSubmitNext"])))
 	{	
 		foreach($divisions as $div) 
 		{
@@ -92,6 +93,29 @@
 			
 			$isSaved = True;
 			
+		}
+		
+		if(isset($_POST["btnSubmitNext"]))
+		{
+			// redirect
+			for($i = 0; $i < sizeof($rounds); $i++)
+			{
+				if($rounds[$i]['CompetitionRoundId'] == $roundid) {
+					break;
+				}
+			}
+			
+			if($i == sizeof($rounds) - 1)
+			{
+				$i = 0;
+			}
+			else
+			{
+				$i = $i +1;
+			}
+			
+			$href = 'bracket.php?id=' . $bracketid . '&roundid=' . $rounds[$i]['CompetitionRoundId'];
+			header("Location: " . $href);
 		}
 	}
 	
@@ -275,6 +299,7 @@
 				?>
 				<input type="submit" text="save" class="btn btn-primary" name="btnSubmit" id="btnSubmit">
 		
+				<input type="submit" value="Save and Next Round" class="btn btn-primary pull-right" name="btnSubmitNext" id="btnSubmitNext">
 				<?php
 				}
 			}

@@ -50,15 +50,83 @@ class UserData
 		}
 	}
 	
-	public function getBracketScores($bracketId)
+	private function getBracketScores($bracketId, $scoreLimit)
 	{
-		$stmt = $this->connection->prepare('SELECT * FROM VW_Scores
+		$sTop = '';
+		if($scoreLimit > 0)
+		{
+			$sTop = ' LIMIT 0, ' . $scoreLimit;
+		}
+		
+		
+		$stmt = $this->connection->prepare('SELECT  * FROM VW_Scores
 											WHERE MatchId = :match
 											ORDER BY Score DESC, TieBreak1Score DESC, TieBreak2Score DESC, 
-											TieBreak3Score DESC, TieBreak4Score DESC, TieBreak5Score DESC');
+											TieBreak3Score DESC, TieBreak4Score DESC, TieBreak5Score DESC' 
+											. $sTop);
 		$stmt->bindParam(':match', $bracketId, PDO::PARAM_INT);
 		$stmt->execute();
 	
+		return $stmt->fetchAll();
+	}
+	
+	public function rankBracketScores($bracketId, $scoreLimit)
+	{
+		$scores =  $this->getBracketScores($bracketId, $scoreLimit);
+		
+		$prevScore = null;
+		$prevTb1 = null;
+		$prevTb2 = null;
+		$prevTb3 = null;
+		$prevTb4 = null;
+		$prevTb5 = null;
+		$currRank = 0;
+		
+		$numTies = 0;
+		
+		foreach($scores as &$field)
+		{
+			if($field['Score'] == $prevScore && $field['TieBreak1Score'] == $prevTb1 && 
+				$field['TieBreak2Score'] == $prevTb2 && $field['TieBreak3Score'] == $prevTb3 && 
+					$field['TieBreak4Score'] == $prevTb4 && $field['TieBreak5Score'] == $prevTb5)
+			{
+		        // increase the tie counter
+				$numTies = $numTies + 1;
+		    }
+			else
+			{
+				// increment by the number of ties so score is 1, 2, 2, 4
+				$currRank = $currRank + 1 + $numTies;
+				
+				// reset tie ranking
+				$numTies = 0;
+				
+				// store all the new fields
+				$prevScore = $field['Score'];
+				$prevTb1 = $field['TieBreak1Score'];
+				$prevTb2 = $field['TieBreak2Score'];
+				$prevTb3 = $field['TieBreak3Score'];
+				$prevTb4 = $field['TieBreak4Score'];
+				$prevTb5 = $field['TieBreak5Score'];
+			}
+			
+			$field['Rank'] = $currRank;
+		}
+		
+		return $scores;
+		
+	}
+	
+	public function getScoringDetails($userId, $matchId)
+	{
+		$stmt = $this->connection->prepare('SELECT *
+											FROM VW_ScoringDetails
+											WHERE MatchId = :match AND UserId = :user
+											ORDER BY  CompetitionRoundId, DivisionId, EntryPosition');
+		$stmt->bindParam(':match', $matchId, PDO::PARAM_INT);
+		$stmt->bindParam(':user', $userId, PDO::PARAM_INT);
+		$stmt->execute();
+		
 		return $stmt->fetchAll();
 	}
 	

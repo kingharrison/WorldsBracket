@@ -168,7 +168,7 @@ class BracketData
 	public function addWorldsPlacements($placements, $roundId, $divisionId, $season) 
 	{	    
 		// do a delete and insert
-		$stmt = $this->connection->prepare("DELETE FROM WorldsWinners WHERE DivisionId = :divid AND CompetitionRoundId = :round Season = :season ORDER BY Position");
+		$stmt = $this->connection->prepare("DELETE FROM WorldsWinners WHERE DivisionId = :divid AND CompetitionRoundId = :round AND Season = :season");
 		$stmt->bindParam(':divid', $divisionId, PDO::PARAM_INT);
 		$stmt->bindParam(':round', $roundId, PDO::PARAM_INT);
 		$stmt->bindParam(':season', $season, PDO::PARAM_INT);

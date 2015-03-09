@@ -35,7 +35,7 @@
 	<link rel="stylesheet" type="text/css" href="css/vendor/datepicker.css" />
 	<link rel="stylesheet" type="text/css" href="css/vendor/morris.css" />
 	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
-	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.css" />
+	<link rel="stylesheet" type="text/css" href="css/jquerymobile.css" />
 
 	<!-- javascript -->
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
@@ -52,6 +52,18 @@
 	<script src="js/vendor/jquery.flot/jquery.flot.js"></script>
 	<script src="js/vendor/jquery.flot/jquery.flot.time.js"></script>
 	<script src="js/vendor/jquery.flot/jquery.flot.tooltip.js"></script>
+	
+	<script>
+		// Google Analytics
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-60205274-1', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
 	
 	<style>
 		#dashboard .chart {
@@ -84,7 +96,8 @@
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
 </head>
-<body id="dashboard"><div id="wrapper">
+<body id="dashboard">
+	<div id="wrapper">
 		<div id="sidebar-default" class="main-sidebar">
 			<div class="current-user">
 				<a href="index.php" class="name">

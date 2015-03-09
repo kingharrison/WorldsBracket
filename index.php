@@ -32,10 +32,9 @@
 
 <?php
 if (!isset($CURRENT_USER)) {
-	echo '<div class="alert alert-warning" role="alert">Please <a href="' . $config['fierceboardUrl'] . '/login/">first log into fierceboard</a> to take part in the bracket contest</div>';
+	echo '<div class="alert alert-warning" role="alert">You must be <a href="' . $config['fierceboardUrl'] . '/login/">logged into fierceboard</a> to participate in the bracket contest</div>';
 }
-else
-{
+
 	?>
 	<div class="charts clearfix">
 		<div class="chart">
@@ -56,8 +55,8 @@ else
 		$endDate = new DateTime();
 		$endDate->setTimestamp(strtotime($brackets[0]['EndDate']));
 		
-		//if($currentTime < $endDate)
-		//{
+		if (isset($CURRENT_USER) && $currentTime < $endDate)
+		{
 			?>
 		    <div class="chart">
 				<h3>Your Bracket Status</h3>
@@ -93,38 +92,40 @@ else
 				}
 				?>
 		    </div>
-		  </div>
-
 	<?php
-	//}
-	//else
-	//{
+		}
+	?>
+	</div>
+<?php
+	
+	
 		// stupid extra divs to make the css work
 		echo '<div class="users-list"><div class="row user">';
 		
 		foreach($brackets as $bracket)
 		{
-			$scores =  $USER_DATA_BO->getBracketScores($bracket['MatchId']);
+			$scores =  $USER_DATA_BO->rankBracketScores($bracket['MatchId'], 10);
 			
 			?>
 		    <div class="col-sm-6">
 		      <div class="barchart">
-		        <h3><?php echo $bracket['MatchName'] ?> Bracket Scores</h3>
+		        <h3><?php echo $bracket['MatchName'] ?> Bracket Top 10</h3>
 				<table class="table score-table">
-					<tr>
-						<th></td>
-						<th></td>
-						<th>User</td>
-						<th>Score</td>
-					</tr>
+					<thead>
+						<tr>
+							<th></td>
+							<th></td>
+							<th>User</td>
+							<th>Score</td>
+						</tr>
+					</thead>
 		       	 	<?php
-					$i = 0;
 					foreach($scores as $s)
 					{
-						$i = $i+1;
+						
 						?>
 						<tr>
-							<td><?php echo $i . "." ?></td>
+							<td><?php echo $s['Rank'] . "." ?></td>
 							<td><div class="avatar"><img class="avatar" src="<?php echo $USER_DATA_BO->getUserAvatar($s['UserId']) ?>" /></div></td>
 							<td><?php echo $s['UserName'] ?></td>
 							<td><?php echo $s['Score'] ?></td>
@@ -132,16 +133,23 @@ else
 						<?php
 					}	
 		       	 	?>
+					<tfoot>
+						<tr>
+							<td colspan="4" style="text-align:right;">
+							 	<a href="scores.php?id=<?php echo $bracket['MatchId'] ?>">See All</a>
+							</td>
+						</tr>
+					</tfoot>
 				</table>
 		      </div>
 		    </div>
 		<?php
 		}
 		echo "</div></div>";
-	//}
-}	
+
+	
 ?>
-	</div>
+</div>
 
 <?php include $root . '/worldsbracket/footer.php'; ?>	
 
