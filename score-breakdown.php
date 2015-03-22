@@ -48,6 +48,12 @@
 	<div class="content-wrapper">
 		<div id="orders-datatable_wrapper" class="dataTables_wrapper">
 			
+			<div class="alert alert-info" role="alert">
+				Below is the point-by-point breakdown of this bracket. Rows highlighted in green had the correct team and the correct placement. Rows in blue had the wrong placement selected.
+				<br/><br/>
+				The Potential Points column lists two possible scores for that row. The first number is the points scored if the correct team and placement are selected, the second number is the points if the team is correct, but the placement is wrong.
+		    </div>
+			
 				<?php
 				$scores =  $USER_DATA_BO->getScoringDetails($userId, $bracketId);
 				$currRound = null;
@@ -96,7 +102,7 @@
 									<th>Your Choice</th>
 									<th>Actual Team</th>
 									<th>Potential<br/>Points</th>
-									<th style="text-align:right;">Score</th>
+									<th style="text-align:right;">Points</th>
 								</tr>
 							</thead>
 						<?php

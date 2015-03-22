@@ -4,6 +4,15 @@
 	$root = $_SERVER['DOCUMENT_ROOT'];
 	include $root . '/worldsbracket/header.php';
 	
+	$brackets =  $BRACKET_DATA_BO->getAllBrackets($config_season);
+	
+	// bracket start/end date
+	$currentTime = new DateTime();
+	$currentTime->setTimestamp(time());
+	$startDate = new DateTime();
+	$startDate->setTimestamp(strtotime($brackets[0]['StartDate']));
+	$endDate = new DateTime();
+	$endDate->setTimestamp(strtotime($brackets[0]['EndDate']));
 
 ?>
 	<style type="text/css">
@@ -44,16 +53,12 @@ if (!isset($CURRENT_USER)) {
 			Good luck!
 	    </div>
 		
-		<?php
-		$brackets =  $BRACKET_DATA_BO->getAllBrackets($config_season);
+		<div class="chart">
+			<h3>Prizes</h3>
+			We're looking for sponsors for prizes. Contact <a href="mailto:king@fierceboard.com">King</a> if you're a business interested in offering a prize. You will get an advertisement in this spot.
+	    </div>
 		
-		// bracket start/end date
-		$currentTime = new DateTime();
-		$currentTime->setTimestamp(time());
-		$startDate = new DateTime();
-		$startDate->setTimestamp(strtotime($brackets[0]['StartDate']));
-		$endDate = new DateTime();
-		$endDate->setTimestamp(strtotime($brackets[0]['EndDate']));
+		<?php
 		
 		if (isset($CURRENT_USER) && $currentTime < $endDate)
 		{
@@ -96,9 +101,35 @@ if (!isset($CURRENT_USER)) {
 		}
 	?>
 	</div>
-<?php
+	<?php
 	
+	// ** popular teams **
+	foreach($brackets as $bracket)
+	{
+		$teams =  $USER_DATA_BO->getBracketPopularity($bracket['MatchId'], 10);
+		
+		?>
+	    <div class="col-sm-6">
+	    	<div class="barchart">
+	        	<h3><?php echo $bracket['MatchName'] ?> Bracket Favorites</h3>
+				<ol>
+					<?php
+					foreach($teams as $t)
+					{
+						echo "<li>" . $t['TeamName']. "</li>";
+					}	
+					?>
+				</ol>
+			</div>
+		</div>
+			
+		<?php
+	}
+
+	// ** Scores **
 	
+	//if ($currentTime > $endDate)
+	//{	
 		// stupid extra divs to make the css work
 		echo '<div class="users-list"><div class="row user">';
 		
@@ -127,7 +158,11 @@ if (!isset($CURRENT_USER)) {
 						<tr>
 							<td><?php echo $s['Rank'] . "." ?></td>
 							<td><div class="avatar"><img class="avatar" src="<?php echo $USER_DATA_BO->getUserAvatar($s['UserId']) ?>" /></div></td>
-							<td><?php echo $s['UserName'] ?></td>
+							<td>
+								<a href="<?php echo 'score-breakdown.php?userId=' . $s['UserId'] . '&matchId=' . $bracket['MatchId'] ?>">
+									<?php echo $s['UserName'] ?>
+								</a>
+							</td>
 							<td><?php echo $s['Score'] ?></td>
 						</tr>
 						<?php
@@ -146,7 +181,7 @@ if (!isset($CURRENT_USER)) {
 		<?php
 		}
 		echo "</div></div>";
-
+	//}
 	
 ?>
 </div>

@@ -160,5 +160,24 @@ class UserData
 		return $newresult;
 	}
 	
+	public function getBracketPopularity($matchId, $scoreLimit)
+	{
+		$sTop = '';
+		if($scoreLimit > 0)
+		{
+			$sTop = ' LIMIT 0, ' . $scoreLimit;
+		}
+		
+		$stmt = $this->connection->prepare('SELECT *
+											FROM VW_BracketPopularity
+											WHERE MatchId = :match 
+											ORDER BY RankingScore DESC'
+											. $sTop);
+		$stmt->bindParam(':match', $matchId, PDO::PARAM_INT);
+		$stmt->execute();
+		
+		return $stmt->fetchAll();
+	}
+	
 }
 ?>
