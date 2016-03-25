@@ -3864,6 +3864,9 @@ body {
       border-top: 1px solid #e0e0e0; }
     #users #content .content-wrapper .users-list .user:nth-child(2n) {
       background: #FAFAFC; }
+	 #users #content .content-wrapper .users-list .user .avatar {
+		 height:45px;
+	 }
     #users #content .content-wrapper .users-list .user .avatar input[type="checkbox"] {
       margin-right: 25px;
       cursor: pointer; }

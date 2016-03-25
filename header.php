@@ -1,28 +1,28 @@
 <html>
 	<head>
-<?php 
+<?php
 
 	ini_set('display_errors', 'On');
 
 	$root = $_SERVER['DOCUMENT_ROOT'];
   	$worlds_bracket_home = $root . '/worldsbracket/';
 	require_once($worlds_bracket_home . "library/include.php");
-	
+
 	// set up avatar
-	$avatarPath = "http://board.fierce-brands.com/styles/fierceboardlogo.png";
+	$avatarPath = "http://www.fierceboard.com/styles/fierceboardlogo.png";
 	if(isset($CURRENT_USER))
 	{
 		$avatarPath  = $USER_DATA_BO->getUserAvatar($CURRENT_USER['user_id']);
-		
+
 		//$avatarPath = "http://board.fierce-brands.com/data/avatars/s/" . intval($CURRENT_USER['user_id']/1000) . "/" . $CURRENT_USER['user_id'] . ".jpg";
 	}
-	
+
 	$USER_DATA_BO->logUserVisit($CURRENT_USER["user_id"], $CURRENT_USER['username']);
-	
+
 ?>
 
 	<meta charset="UTF-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge" />	
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 	<title>Fierce Board Bracket Contest</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -52,7 +52,7 @@
 	<script src="js/vendor/jquery.flot/jquery.flot.js"></script>
 	<script src="js/vendor/jquery.flot/jquery.flot.time.js"></script>
 	<script src="js/vendor/jquery.flot/jquery.flot.tooltip.js"></script>
-	
+
 	<script>
 		// Google Analytics
 	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -64,7 +64,7 @@
 	  ga('send', 'pageview');
 
 	</script>
-	
+
 	<style>
 		#dashboard .chart {
 			margin-bottom:20px !important;
@@ -79,13 +79,13 @@
 		* html .ui-autocomplete {
 			height: 150px;
 		}
-		
+
 		.ui-menu .ui-menu-item a{
 			padding-top: 5px !important;
 			padding-bottom: 5px !important;
 			display:block;
 		}
-	
+
 		.ui-front {
 			z-index: 100000 !important;
 		}
@@ -118,7 +118,7 @@
 				<ul>
 					<li>
 						<a href="index.php" title="Home"> <!-- class="active" -->
-							<i class="ion-home"></i> 
+							<i class="ion-home"></i>
 							<span>Home</span>
 						</a>
 					</li>
@@ -134,27 +134,27 @@
 							{
 								echo '<li><a href="bracket.php?id=' . $row['MatchId'] . '">' . $row['MatchName']. '</a></li>';
 							}
-							
+
 							?>
-							
+
 						</ul>
 					</li>
 					<li>
-						<a href="http://board.fierce-brands.com/" title="Return to Fierceboard">
-							<i class="ion-reply"></i> 
+						<a href="http://fierceboard.com/" title="Return to Fierceboard">
+							<i class="ion-reply"></i>
 							<span>Return to Fierceboard</span>
 						</a>
 					</li>
 				</ul>
 			</div>
-			
+
 		<?php
 		// show the admin section if user is staff
 		if($CURRENT_USER['is_staff'] == 1)
 		{
-			
+
 		?>
-			
+
 			<div class="menu-section">
 				<h3>Admin</h3>
 				<ul>
@@ -184,7 +184,7 @@
 								{
 									echo '<li><a href="admin-winners.php?id=' . $row['DivisionId'] . '">' . $row['DivisionName']. '</a></li>';
 								}
-						
+
 								?>
 							</ul>
 						</ul>
@@ -193,16 +193,12 @@
 			</div>
 		<?php
 		// end $CURRENT_USER['is_staff'] == 1
-		}	
-		?>	
-		
+		}
+		?>
+
 			<div class="bottom-menu hidden-sm">
 				<ul>
-					
+
 				</ul>
 			</div>
 		</div>
-
-		
-			
-

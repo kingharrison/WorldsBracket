@@ -48,12 +48,10 @@ if (!isset($CURRENT_USER)) {
 	<div class="charts clearfix">
 		<div class="chart">
 			<h3>Welcome!</h3>
-			Welcome to the fierceboard bracket contest! There are two brackets - coed and all-girl, with one winner each. Entries will open April 1 and close April 24. Scores will be updated after each day of worlds and a winner will be crowned on finals day!
+			Welcome to the fierceboard bracket contest! There are two brackets - coed and all-girl, with one winner each. Entries will open April 13 and close April 24. Scores will be updated after each day of worlds and a winner will be crowned on finals day!
 			<br/><br/>
 			Good luck!
-	    </div>
-		
-		<div class="chart">
+			<br/><br/>
 			<h3>Prizes</h3>
 			We're looking for sponsors for prizes. Contact <a href="mailto:king@fierceboard.com">King</a> if you're a business interested in offering a prize. You will get an advertisement in this spot.
 	    </div>
@@ -128,8 +126,8 @@ if (!isset($CURRENT_USER)) {
 
 	// ** Scores **
 	
-	//if ($currentTime > $endDate)
-	//{	
+	if ($currentTime > $endDate)
+	{	
 		// stupid extra divs to make the css work
 		echo '<div class="users-list"><div class="row user">';
 		
@@ -181,7 +179,7 @@ if (!isset($CURRENT_USER)) {
 		<?php
 		}
 		echo "</div></div>";
-	//}
+	}
 	
 ?>
 </div>
